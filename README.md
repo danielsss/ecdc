@@ -1,0 +1,2 @@
+# ecdc
+Enemy cooldown count
