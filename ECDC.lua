@@ -1530,7 +1530,7 @@ end
 local ECDC_LoginMsg = CreateFrame("FRAME");
 ECDC_LoginMsg:SetScript("OnEvent", function()
     C_Timer.After(3, function() 
-	print("|cffffdd00----------------[ECDC冷却语音提示插件 v" .. tostring(addon.version or "3.2.9") .. "]----------------|r")
+	print("|cffffdd00[ECDC冷却语音提示插件 v" .. tostring(addon.version or "3.2.9") .. "]|r")
 	print("|cffffff001, 聊天框输入 |cffff0000/ecdc |cffffff00 开启ECDC插件主配置界面|r")
 	print("|cffffff002, 聊天框输入 |cffff0000/tb |cffffff00 [关闭] 或 [开启] 侦测敌方潜行通报(队伍和团队)|r")
 	print("|cffffff003, 聊天框输入 |cffff0000/yy |cffffff00 [关闭] 或 [开启] 目标技能语音提醒|r")
@@ -1560,11 +1560,23 @@ local StealthBuffNames = {
     ["Shadowmeld"] = true,    -- 暗夜精灵 影遁
 }
 
+local function GetCurrentPlayerMapName()
+    local mapID = C_Map.GetBestMapForUnit("player")
+    if not mapID then
+        return nil
+    end
+    local mapInfo = C_Map.GetMapInfo(mapID)
+    if mapInfo and mapInfo.name then
+        return mapInfo.name
+    end
+    return nil
+end
+
 -- 检测潜行 Buff 的逻辑
 StealthBuffDetector:SetScript("OnEvent", function()
     local _, subevent, _, sourceGUID, sourceName, sourceFlags, _, destGUID, destName, destFlags, _, spellId, spellName = CombatLogGetCurrentEventInfo()
 		local localizedClass, englishClass, localizedRace, englishRace, sex, name, realm = GetPlayerInfoByGUID(sourceGUID)
-    local mapID = C_Map.GetBestMapForUnit("player")
+		local zone = GetRealZoneText()
 
 		-- 检测 Buff 应用或移除
     if subevent == "SPELL_AURA_APPLIED" or subevent == "SPELL_AURA_REMOVED" then
@@ -1577,12 +1589,17 @@ StealthBuffDetector:SetScript("OnEvent", function()
             if bit.band(sourceFlags, COMBATLOG_OBJECT_REACTION_HOSTILE) > 0 then
 								local action = subevent == "SPELL_AURA_APPLIED" and "有潜行者: " or "退出潜行: "
                 print("|cffff0000----------- 警告:|r 附近" .. action .. sourceName)
-                local message = "[|cffff0000警告]附近" .. action .. sourceName .. " - |cff00ff00" .. localizedRace
-								if mapID then
-									local mapInfo = C_Map.GetMapInfo(mapID)
-									message = message .. " |cffffffff" .. mapInfo.name
+								local consoleMessage = "|cffff0000----------- 警告:|r 附近" .. action .. sourceName .. " - " .. localizedRace .. " " .. tostring(GetCurrentPlayerMapName() or "")
+								if zone then
+										consoleMessage = consoleMessage .. "," .. zone
 								end
-                -- /tb 控制通报团队/小队
+								print(consoleMessage)
+                local message = "警告: 附近" .. action .. sourceName .. " - " .. localizedRace .. " " .. tostring(GetCurrentPlayerMapName() or "")
+                if zone then
+										message = message .. "," .. zone
+								end
+								
+								-- /tb 控制通报团队/小队
                 if ECDC_AlertEnabled then 
                     if IsInRaid() then
                         SendChatMessage(message, "RAID")
