@@ -1576,7 +1576,7 @@ end
 StealthBuffDetector:SetScript("OnEvent", function()
     local _, subevent, _, sourceGUID, sourceName, sourceFlags, _, destGUID, destName, destFlags, _, spellId, spellName = CombatLogGetCurrentEventInfo()
 		local localizedClass, englishClass, localizedRace, englishRace, sex, name, realm = GetPlayerInfoByGUID(sourceGUID)
-		local zone = GetRealZoneText()
+		local zone = GetSubZoneText()
 
 		-- 检测 Buff 应用或移除
     if subevent == "SPELL_AURA_APPLIED" or subevent == "SPELL_AURA_REMOVED" then
@@ -1589,13 +1589,8 @@ StealthBuffDetector:SetScript("OnEvent", function()
             if bit.band(sourceFlags, COMBATLOG_OBJECT_REACTION_HOSTILE) > 0 then
 								local action = subevent == "SPELL_AURA_APPLIED" and "有潜行者: " or "退出潜行: "
                 print("|cffff0000----------- 警告:|r 附近" .. action .. sourceName)
-								local consoleMessage = "|cffff0000----------- 警告:|r 附近" .. action .. sourceName .. " - " .. localizedRace .. " " .. tostring(GetCurrentPlayerMapName() or "")
-								if zone then
-										consoleMessage = consoleMessage .. "," .. zone
-								end
-								print(consoleMessage)
                 local message = "警告: 附近" .. action .. sourceName .. " - " .. localizedRace .. " " .. tostring(GetCurrentPlayerMapName() or "")
-                if zone then
+                if zone and zone ~= "" then
 										message = message .. "," .. zone
 								end
 								
@@ -1610,8 +1605,8 @@ StealthBuffDetector:SetScript("OnEvent", function()
                 
 				-- /yy 是否开启
 				if ECDC_SoundEnabled then
-					-- PlaySoundFile("Interface\\AddOns\\ECDC\\sounds\\" .. "小心身边.mp3", "Master")
-					PlaySoundFile("Interface\\AddOns\\ECDC\\sounds\\" .. "危险.mp3", "Master")
+					PlaySoundFile("Interface\\AddOns\\ECDC\\sounds\\" .. "小心身边.mp3", "Master")
+					-- PlaySoundFile("Interface\\AddOns\\ECDC\\sounds\\" .. "危险.mp3", "Master")
 				end
 			end
         end
